@@ -1,1 +1,44 @@
 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: watch-shop
+  labels:
+    app: watch-shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: watch-shop
+  template:
+    metadata:
+      labels:
+        app: watch-shop
+    spec:
+      containers:
+      - name: watch-shop
+        image: your-dockerhub/watch-shop:latest
+        ports:
+        - containerPort: 3000
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        env:
+        - name: NODE_ENV
+          value: "production"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 20
