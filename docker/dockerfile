@@ -30,7 +30,8 @@ EXPOSE 8000
 # IMPORTANT: use module import path, not a filesystem path.
 # We cd into the folder that contains the inner `WatchShop/` package,
 # then load the WSGI app.
-gunicorn --chdir watch-shop-app/WatchShop WatchShop.wsgi:application --bind 0.0.0.0:8000
+CMD ["gunicorn", "--chdir", "watch-shop-app/WatchShop", "WatchShop.wsgi:application", "--bind", "0.0.0.0:8000"]
+
 
 
 
