@@ -6,33 +6,26 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
-RUN apt-get update && apt-get install -y build-essential libpq-dev curl && rm -rf /var/lib/apt/lists/*
-
-# install python deps
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
+# Install system dependencies (Postgres + MySQL support)
 RUN apt-get update && apt-get install -y \
-    default-libmysqlclient-dev \
     build-essential \
+    default-libmysqlclient-dev \
+    libpq-dev \
     pkg-config \
-    && rm -rf /var/lib/apt/lists/*
+    curl \
+ && rm -rf /var/lib/apt/lists/*
 
+# Install Python deps
+COPY requirements.txt .
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# copy your whole repo
+# Copy project
 COPY . .
 
-# collect static using the correct manage.py location
+# Collect static files (don’t crash container if not needed)
 RUN python watch-shop-app/manage.py collectstatic --noinput || true
 
 EXPOSE 8000
 
-# IMPORTANT: use module import path, not a filesystem path.
-# We cd into the folder that contains the inner `WatchShop/` package,
-# then load the WSGI app.
+# Run Gunicorn with correct Django entrypoint
 CMD ["gunicorn", "--chdir", "watch-shop-app/WatchShop", "WatchShop.wsgi:application", "--bind", "0.0.0.0:8000"]
-
-
-
-
-
