@@ -1,5 +1,5 @@
-# Dockerfile
 FROM python:3.11-slim
+
 WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -8,16 +8,19 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 RUN apt-get update && apt-get install -y build-essential libpq-dev curl && rm -rf /var/lib/apt/lists/*
 
+# install python deps
 COPY requirements.txt .
-
 RUN pip install -r requirements.txt
 
-
+# copy your whole repo
 COPY . .
-# If you use collectstatic, set STATIC_ROOT in settings and keep this:
-RUN python manage.py collectstatic --noinput || true
+
+# collect static using the correct manage.py location
+RUN python watch-shop-app/manage.py collectstatic --noinput || true
 
 EXPOSE 8000
-CMD ["gunicorn", "WatchShop.wsgi:application", "--chdir", "watch-shop-app/WatchShop", "--bind", "0.0.0.0:8000"]
 
-
+# IMPORTANT: use module import path, not a filesystem path.
+# We cd into the folder that contains the inner `WatchShop/` package,
+# then load the WSGI app.
+CMD ["gunicorn", "--chdir", "watch-shop-app/WatchShop", "WatchShop.wsgi:application", "--bind", "0.0.0.0:8000"]
